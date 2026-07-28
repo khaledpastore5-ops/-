@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+8<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -105,6 +105,34 @@ margin-top:10px;
 </div>
 
 </div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
+const firebaseConfig = {
+  apiKey: "AIzaSyAAf6MEr-ehw676UDWdu8FhfDJQdsCv9Ik",
+  authDomain: "ouns-29420.firebaseapp.com",
+  projectId: "ouns-29420",
+  storageBucket: "ouns-29420.firebasestorage.app",
+  messagingSenderId: "407525738381",
+  appId: "1:407525738381:web:93096f58e56d8d4d82dfc4",
+  measurementId: "G-M6J24WBQE3"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+document.getElementById("loginBtn").onclick = async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    alert("تم تسجيل الدخول بنجاح");
+  } catch (e) {
+    alert(e.message);
+  }
+};
+</script>
 </body>
 </html>
