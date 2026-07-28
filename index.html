@@ -130,6 +130,8 @@ document.getElementById("loginBtn").onclick = async () => {
     await signInWithEmailAndPassword(auth, email, password);
     alert("تم تسجيل الدخول بنجاح");
   } catch (e) {
+  alert(e.code + "\n" + e.message);
+  }
     alert(e.message);
   }
 };
