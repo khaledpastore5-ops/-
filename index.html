@@ -487,8 +487,10 @@ createRoomBtn.onclick = async () => {
 await createOffer(code);
     roomCodeInput.value = code;
 localStream = await navigator.mediaDevices.getUserMedia({
-  audio: true
+  audio:true
 });
+
+await createOffer(code);
 
 roomsCard.style.display = "none";
 voiceRoomCard.style.display = "block";
