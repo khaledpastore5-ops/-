@@ -209,10 +209,13 @@ import {
   doc,
   setDoc,
   getDoc,
+  getDocs,
   updateDoc,
   onSnapshot,
   collection,
   addDoc
+}
+  
 }
 from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js"; 
   
@@ -370,77 +373,93 @@ async function joinOffer(roomId) {
     new RTCSessionDescription(data.offer)
   );
 
+
   const answer = await peerConnection.createAnswer();
 
   await peerConnection.setLocalDescription(answer);
-peerConnection.onicecandidate = async (event) => {
 
-  if (event.candidate) {
 
-    await addDoc(
-      collection(db, "rooms", roomId, "answerCandidates"),
-      event.candidate.toJSON()
-    );
+  peerConnection.onicecandidate = async (event) => {
 
-  }
+    if (event.candidate) {
 
-};
+      await addDoc(
+        collection(db, "rooms", roomId, "answerCandidates"),
+        event.candidate.toJSON()
+      );
+
+    }
+
+  };
+
+
   await updateDoc(roomRef, {
+
     answer: {
       type: answer.type,
       sdp: answer.sdp
     }
+
   });
-const callerCandidates = await getDocs(
-  collection(db, "rooms", roomId, "callerCandidates")
-);
 
-callerCandidates.forEach((candidate) => {
 
-  peerConnection.addIceCandidate(
-    new RTCIceCandidate(candidate.data())
+  const callerCandidates = await getDocs(
+    collection(db, "rooms", roomId, "callerCandidates")
   );
-const roomRef = doc(db, "rooms", roomId);
 
-onSnapshot(roomRef, async (snapshot) => {
 
-  const data = snapshot.data();
+  callerCandidates.forEach((candidate) => {
 
-  if (
-    data.answer &&
-    !peerConnection.currentRemoteDescription
-  ) {
-
-    await peerConnection.setRemoteDescription(
-      new RTCSessionDescription(data.answer)
+    peerConnection.addIceCandidate(
+      new RTCIceCandidate(candidate.data())
     );
 
-  }
-const answerCandidatesRef = collection(
-  db,
-  "rooms",
-  roomId,
-  "answerCandidates"
-);
+  });
 
-onSnapshot(answerCandidatesRef, (snapshot) => {
 
-  snapshot.docChanges().forEach((change) => {
+  onSnapshot(roomRef, async (snapshot) => {
 
-    if (change.type === "added") {
+    const data = snapshot.data();
 
-      peerConnection.addIceCandidate(
-        new RTCIceCandidate(change.doc.data())
+    if (
+      data.answer &&
+      !peerConnection.currentRemoteDescription
+    ) {
+
+      await peerConnection.setRemoteDescription(
+        new RTCSessionDescription(data.answer)
       );
 
     }
 
   });
 
-});
-});
-});
-}
+
+  const answerCandidatesRef = collection(
+    db,
+    "rooms",
+    roomId,
+    "answerCandidates"
+  );
+
+
+  onSnapshot(answerCandidatesRef, (snapshot) => {
+
+    snapshot.docChanges().forEach((change) => {
+
+      if (change.type === "added") {
+
+        peerConnection.addIceCandidate(
+          new RTCIceCandidate(change.doc.data())
+        );
+
+      }
+
+    });
+
+  });
+
+  }
 // إنشاء غرفة خاصة
 createRoomBtn.onclick = async () => {
 
@@ -473,7 +492,7 @@ micStatus.innerText = "🎤 الميكروفون يعمل";
 
 };
 // دخول غرفة خاصة
-auth.currentUser.emailjoinPrivateBtn.onclick = async () => {
+joinPrivateBtn.onclick = async () => {
 
   const code = roomCodeInput.value.trim().toUpperCase();
 
