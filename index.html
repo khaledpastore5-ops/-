@@ -154,7 +154,20 @@ margin:15px 0;
 <button disabled>
 قريباً
 </button>
+<h3>الغرف الخاصة 🔒</h3>
 
+<button id="createRoomBtn">
+➕ إنشاء غرفة خاصة
+</button>
+
+<input
+id="roomCode"
+type="text"
+placeholder="أدخل رمز الغرفة">
+
+<button id="joinPrivateBtn">
+🚪 دخول الغرفة
+</button>
 </div>
 
 </div>
@@ -253,9 +266,34 @@ const leaveRoomBtn = document.getElementById("leaveRoomBtn");
 const micBtn = document.getElementById("micBtn");
 
 const micStatus = document.getElementById("micStatus");
-
+const createRoomBtn = document.getElementById("createRoomBtn");
+const joinPrivateBtn = document.getElementById("joinPrivateBtn");
+const roomCodeInput = document.getElementById("roomCode");
 let localStream = null;
+// إنشاء غرفة خاصة
+createRoomBtn.onclick = () => {
 
+  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+  roomCodeInput.value = code;
+
+  alert("تم إنشاء الغرفة 🎉\nرمز الغرفة: " + code);
+
+};
+
+// دخول غرفة خاصة
+joinPrivateBtn.onclick = () => {
+
+  const code = roomCodeInput.value.trim().toUpperCase();
+
+  if (!code) {
+    alert("أدخل رمز الغرفة");
+    return;
+  }
+
+  alert("تم الانضمام إلى الغرفة: " + code);
+
+};
 
 // إنشاء حساب
 
