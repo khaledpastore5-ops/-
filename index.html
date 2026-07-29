@@ -1,4 +1,4 @@
-8<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -39,6 +39,7 @@ padding:12px;
 margin:10px 0;
 border:1px solid #ddd;
 border-radius:10px;
+box-sizing:border-box;
 }
 
 button{
@@ -50,16 +51,22 @@ border:none;
 border-radius:10px;
 font-size:18px;
 cursor:pointer;
+margin-top:10px;
+}
+
+button.secondary{
+background:#444;
 }
 
 .room{
-display:flex;
-justify-content:space-between;
-align-items:center;
 padding:15px;
 border:1px solid #eee;
 border-radius:10px;
 margin-top:10px;
+}
+
+#roomsCard{
+display:none;
 }
 </style>
 </head>
@@ -73,75 +80,220 @@ margin-top:10px;
 
 <div class="container">
 
-<div class="card" id="authCard" style="display:none;">
-<h2>أهلاً بك</h2>
+<!-- تسجيل الدخول وإنشاء الحساب -->
+<div class="card" id="authCard">
+
+<h2>أهلاً بك في ونس 👋</h2>
 
 <input id="email" type="email" placeholder="البريد الإلكتروني">
 
 <input id="password" type="password" placeholder="كلمة المرور">
 
-<button id="loginBtn">دخول</button>
+<button id="loginBtn">تسجيل الدخول</button>
+
+<button id="registerBtn">إنشاء حساب جديد</button>
 
 </div>
 
+<!-- الغرف -->
 <div class="card" id="roomsCard">
-<h2>الغرف الصوتية</h2>
+
+<h2>الغرف الصوتية 🎧</h2>
+
+<p>مرحباً <span id="userEmailSpan"></span> 👋</p>
+
+<button id="logoutBtn" class="secondary">تسجيل الخروج</button>
 
 <div class="room">
-<p>مرحبًا <span id="userEmailSpan"></span></p>
+<h3>غرفة التعارف 👥</h3>
+<p>غرفة عامة للتعارف</p>
 <button>دخول</button>
 </div>
 
 <div class="room">
-<span>غرفة الأصدقاء</span>
+<h3>غرفة الأصدقاء 👥</h3>
+<p>دردشة عامة</p>
 <button>دخول</button>
 </div>
 
 <div class="room">
-<span>غرفة الجزائر 🇩🇿</span>
+<h3>غرفة الجزائر 🇩🇿</h3>
+<p>دردشة جزائرية</p>
 <button>دخول</button>
 </div>
 
 </div>
 
 </div>
+
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+import { initializeApp } 
+from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+import { 
+getAuth,
+createUserWithEmailAndPassword,
+signInWithEmailAndPassword,
+signOut,
+onAuthStateChanged
+} 
+from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAAf6MEr-ehw676UDWdu8FhfDJQdsCv9Ik",
-  authDomain: "ouns-29420.firebaseapp.com",
-  projectId: "ouns-29420",
-  storageBucket: "ouns-29420.firebasestorage.app",
-  messagingSenderId: "407525738381",
-  appId: "1:407525738381:web:93096f58e56d8d4d82dfc4",
-  measurementId: "G-M6J24WBQE3"
+
+apiKey: "AIzaSyAAf6MEr-ehw676UDWdu8FhfDJQdsCv9Ik",
+
+authDomain: "ouns-29420.firebaseapp.com",
+
+projectId: "ouns-29420",
+
+storageBucket: "ouns-29420.firebasestorage.app",
+
+messagingSenderId: "407525738381",
+
+appId: "1:407525738381:web:93096f58e56d8d4d82dfc4",
+
+measurementId: "G-M6J24WBQE3"
+
 };
 
+
 const app = initializeApp(firebaseConfig);
+
 const auth = getAuth(app);
 
-document.getElementById("loginBtn").onclick = async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
 
-  try {
-    const userCredential = await signInWithEmailAndPassword(
-  auth,
-  email,
-  password
+const emailInput = document.getElementById("email");
+
+const passwordInput = document.getElementById("password");
+
+const loginBtn = document.getElementById("loginBtn");
+
+const registerBtn = document.getElementById("registerBtn");
+
+const logoutBtn = document.getElementById("logoutBtn");
+
+const authCard = document.getElementById("authCard");
+
+const roomsCard = document.getElementById("roomsCard");
+
+const userEmailSpan = document.getElementById("userEmailSpan");
+
+
+// إنشاء حساب جديد
+
+registerBtn.onclick = async () => {
+
+const email = emailInput.value.trim();
+
+const password = passwordInput.value;
+
+if (!email || !password) {
+
+alert("أدخل البريد الإلكتروني وكلمة المرور");
+
+return;
+
+}
+
+if (password.length < 6) {
+
+alert("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+
+return;
+
+}
+
+try {
+
+await createUserWithEmailAndPassword(
+auth,
+email,
+password
 );
 
-;document.getElementById("roomsCard").style.display = "block";
-document.getElementById("authCard").style.display = "none";
-document.getElementById("userEmailSpan").innerText =
-  userCredential.user.email;
+alert("تم إنشاء الحساب بنجاح 🎉");
 
-alert("تم تسجيل الدخول بنجاح");
-  } catch (e) {
-    alert(e.code + "\n" + e.message);
-  }
-};</script>
+} catch (e) {
+
+alert("خطأ: " + e.message);
+
+}
+
+};
+
+
+// تسجيل الدخول
+
+loginBtn.onclick = async () => {
+
+const email = emailInput.value.trim();
+
+const password = passwordInput.value;
+
+if (!email || !password) {
+
+alert("أدخل البريد الإلكتروني وكلمة المرور");
+
+return;
+
+}
+
+try {
+
+await signInWithEmailAndPassword(
+auth,
+email,
+password
+);
+
+alert("تم تسجيل الدخول بنجاح 🎉");
+
+} catch (e) {
+
+alert("خطأ في تسجيل الدخول: " + e.message);
+
+}
+
+};
+
+
+// تسجيل الخروج
+
+logoutBtn.onclick = async () => {
+
+await signOut(auth);
+
+alert("تم تسجيل الخروج");
+
+};
+
+
+// مراقبة حالة المستخدم
+
+onAuthStateChanged(auth, (user) => {
+
+if (user) {
+
+authCard.style.display = "none";
+
+roomsCard.style.display = "block";
+
+userEmailSpan.innerText = user.email;
+
+} else {
+
+authCard.style.display = "block";
+
+roomsCard.style.display = "none";
+
+}
+
+});
+
+</script>
+
 </body>
 </html>
