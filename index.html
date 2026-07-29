@@ -208,7 +208,9 @@ import {
   getFirestore,
   doc,
   setDoc,
-  getDoc
+  getDoc,
+  updateDoc,
+  onSnapshot
 }
 from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import {
@@ -277,8 +279,91 @@ const createRoomBtn = document.getElementById("createRoomBtn");
 const joinPrivateBtn = document.getElementById("joinPrivateBtn");
 const roomCodeInput = document.getElementById("roomCode");
 let localStream = null;
-// إنشاء غرفة خاصة
+let peerConnection = null;
 
+const rtcConfig = {
+  iceServers: [
+    {
+      urls: [
+        "stun:stun.l.google.com:19302",
+        "stun:stun1.l.google.com:19302"
+      ]
+    }
+  ]
+};
+
+function createPeer() {
+  peerConnection = new RTCPeerConnection(rtcConfig);
+
+  if (localStream) {
+    localStream.getTracks().forEach(track => {
+      peerConnection.addTrack(track, localStream);
+    });
+  }
+
+  peerConnection.ontrack = (event) => {
+    let audio = document.getElementById("remoteAudio");
+
+    if (!audio) {
+      audio = document.createElement("audio");
+      audio.id = "remoteAudio";
+      audio.autoplay = true;
+      document.body.appendChild(audio);
+    }
+
+    audio.srcObject = event.streams[0];
+  };
+
+  return peerConnection;
+}async function createOffer(roomId) {
+
+  createPeer();
+
+  const offer = await peerConnection.createOffer();
+
+  await peerConnection.setLocalDescription(offer);
+
+  await updateDoc(doc(db, "rooms", roomId), {
+    offer: {
+      type: offer.type,
+      sdp: offer.sdp
+    }
+  });
+
+}
+
+async function joinOffer(roomId) {
+
+  const roomRef = doc(db, "rooms", roomId);
+
+  const room = await getDoc(roomRef);
+
+  if (!room.exists()) {
+    alert("الغرفة غير موجودة");
+    return;
+  }
+
+  createPeer();
+
+  const data = room.data();
+
+  await peerConnection.setRemoteDescription(
+    new RTCSessionDescription(data.offer)
+  );
+
+  const answer = await peerConnection.createAnswer();
+
+  await peerConnection.setLocalDescription(answer);
+
+  await updateDoc(roomRef, {
+    answer: {
+      type: answer.type,
+      sdp: answer.sdp
+    }
+  });
+
+}
+// إنشاء غرفة خاصة
 createRoomBtn.onclick = async () => {
 
   const code = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -289,7 +374,7 @@ createRoomBtn.onclick = async () => {
       createdAt: Date.now(),
       owner: auth.currentUser.email
     });
-
+await createOffer(code);
     roomCodeInput.value = code;
 
     alert("تم إنشاء الغرفة 🎉\nرمزها: " + code);
@@ -302,7 +387,7 @@ createRoomBtn.onclick = async () => {
 
 };
 // دخول غرفة خاصة
-joinPrivateBtn.onclick = () => {
+joinPrivateBtn.onclick = async () => {
 
   const code = roomCodeInput.value.trim().toUpperCase();
 
@@ -310,7 +395,7 @@ joinPrivateBtn.onclick = () => {
     alert("أدخل رمز الغرفة");
     return;
   }
-
+await joinOffer(code);
   alert("تم الانضمام إلى الغرفة: " + code);
 
 };
