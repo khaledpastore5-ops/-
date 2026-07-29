@@ -335,11 +335,11 @@ alert("خطأ في تسجيل الدخول: " + e.message);
 };
 
 
+
+
+
+
 // دخول غرفة التعارف
-
-
-
-
 
 joinRoomBtn.onclick = async () => {
 
@@ -349,55 +349,8 @@ joinRoomBtn.onclick = async () => {
       audio: true
     });
 
-    peerConnection = new RTCPeerConnection(servers);
-
-    localStream.getTracks().forEach(track => {
-      peerConnection.addTrack(track, localStream);
-    });
-
-    peerConnection.ontrack = (event) => {
-
-      let remoteAudio = document.getElementById("remoteAudio");
-
-      if (!remoteAudio) {
-
-        remoteAudio = document.createElement("audio");
-
-        remoteAudio.id = "remoteAudio";
-
-        remoteAudio.autoplay = true;
-
-        document.body.appendChild(remoteAudio);
-
-      }
-
-      remoteAudio.srcObject = event.streams[0];
-
-    };
-
     roomsCard.style.display = "none";
-    voiceRoomCard.style.display = "block";
 
-    roomUserEmail.innerText = auth.currentUser.email;
-
-    micStatus.innerText = "🎤 الميكروفون يعمل";
-
-    alert("تم دخول الغرفة الصوتية 🎉");
-
-  } catch (e) {
-
-    alert("خطأ في تشغيل الميكروفون: " + e.message);
-
-  }
-
-};
-  try {
-
-    localStream = await navigator.mediaDevices.getUserMedia({
-      audio: true
-    });
-
-    roomsCard.style.display = "none";
     voiceRoomCard.style.display = "block";
 
     roomUserEmail.innerText = auth.currentUser.email;
@@ -413,6 +366,7 @@ joinRoomBtn.onclick = async () => {
   }
 
 };
+
 
 
 // الخروج من الغرفة
@@ -447,14 +401,7 @@ micBtn.onclick = () => {
     micBtn.innerText = "🔇 كتم الميكروفون";
     micStatus.innerText = "🎤 الميكروفون يعمل";
 
-  } else {
 
-    micBtn.innerText = "🎤 تشغيل الميكروفون";
-    micStatus.innerText = "🔇 الميكروفون مكتوم";
-
-  }
-
-};
 
 
 // تسجيل الخروج
