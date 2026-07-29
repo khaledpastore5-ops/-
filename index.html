@@ -58,6 +58,10 @@ button.secondary{
 background:#444;
 }
 
+button.red{
+background:#d63031;
+}
+
 .room{
 padding:15px;
 border:1px solid #eee;
@@ -65,8 +69,18 @@ border-radius:10px;
 margin-top:10px;
 }
 
-#roomsCard{
+#roomsCard,
+#voiceRoomCard{
 display:none;
+}
+
+.mic-status{
+text-align:center;
+font-size:20px;
+padding:20px;
+background:#f5f7fb;
+border-radius:15px;
+margin:15px 0;
 }
 </style>
 </head>
@@ -80,7 +94,7 @@ display:none;
 
 <div class="container">
 
-<!-- تسجيل الدخول وإنشاء الحساب -->
+<!-- تسجيل الدخول -->
 <div class="card" id="authCard">
 
 <h2>أهلاً بك في ونس 👋</h2>
@@ -95,49 +109,96 @@ display:none;
 
 </div>
 
-<!-- الغرف -->
+
+<!-- قائمة الغرف -->
 <div class="card" id="roomsCard">
 
 <h2>الغرف الصوتية 🎧</h2>
 
 <p>مرحباً <span id="userEmailSpan"></span> 👋</p>
 
-<button id="logoutBtn" class="secondary">تسجيل الخروج</button>
+<button id="logoutBtn" class="secondary">
+تسجيل الخروج
+</button>
 
 <div class="room">
+
 <h3>غرفة التعارف 👥</h3>
+
 <p>غرفة عامة للتعارف</p>
-<button>دخول</button>
+
+<button id="joinRoomBtn">
+دخول إلى الغرفة
+</button>
+
 </div>
 
 <div class="room">
+
 <h3>غرفة الأصدقاء 👥</h3>
+
 <p>دردشة عامة</p>
-<button>دخول</button>
+
+<button disabled>
+قريباً
+</button>
+
 </div>
 
 <div class="room">
+
 <h3>غرفة الجزائر 🇩🇿</h3>
+
 <p>دردشة جزائرية</p>
-<button>دخول</button>
-</div>
+
+<button disabled>
+قريباً
+</button>
 
 </div>
 
 </div>
+
+
+<!-- غرفة الصوت -->
+<div class="card" id="voiceRoomCard">
+
+<h2>🎙️ غرفة التعارف</h2>
+
+<p>
+المستخدم:
+<span id="roomUserEmail"></span>
+</p>
+
+<div class="mic-status" id="micStatus">
+الميكروفون متوقف 🔇
+</div>
+
+<button id="micBtn">
+🎤 تشغيل الميكروفون
+</button>
+
+<button id="leaveRoomBtn" class="red">
+🚪 مغادرة الغرفة
+</button>
+
+</div>
+
+</div>
+
 
 <script type="module">
 
 import { initializeApp } 
 from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 
-import { 
+import {
 getAuth,
 createUserWithEmailAndPassword,
 signInWithEmailAndPassword,
 signOut,
 onAuthStateChanged
-} 
+}
 from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 
@@ -179,10 +240,24 @@ const authCard = document.getElementById("authCard");
 
 const roomsCard = document.getElementById("roomsCard");
 
+const voiceRoomCard = document.getElementById("voiceRoomCard");
+
 const userEmailSpan = document.getElementById("userEmailSpan");
 
+const roomUserEmail = document.getElementById("roomUserEmail");
 
-// إنشاء حساب جديد
+const joinRoomBtn = document.getElementById("joinRoomBtn");
+
+const leaveRoomBtn = document.getElementById("leaveRoomBtn");
+
+const micBtn = document.getElementById("micBtn");
+
+const micStatus = document.getElementById("micStatus");
+
+let localStream = null;
+
+
+// إنشاء حساب
 
 registerBtn.onclick = async () => {
 
@@ -260,40 +335,8 @@ alert("خطأ في تسجيل الدخول: " + e.message);
 };
 
 
-// تسجيل الخروج
+// دخول غرفة التعارف
 
-logoutBtn.onclick = async () => {
+joinRoomBtn.onclick = () => {
 
-await signOut(auth);
-
-alert("تم تسجيل الخروج");
-
-};
-
-
-// مراقبة حالة المستخدم
-
-onAuthStateChanged(auth, (user) => {
-
-if (user) {
-
-authCard.style.display = "none";
-
-roomsCard.style.display = "block";
-
-userEmailSpan.innerText = user.email;
-
-} else {
-
-authCard.style.display = "block";
-
-roomsCard.style.display = "none";
-
-}
-
-});
-
-</script>
-
-</body>
-</html>
+const
