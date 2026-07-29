@@ -337,6 +337,112 @@ alert("خطأ في تسجيل الدخول: " + e.message);
 
 // دخول غرفة التعارف
 
-joinRoomBtn.onclick = () => {
 
-const
+
+
+joinRoomBtn.onclick = async () => {
+
+  try {
+
+    localStream = await navigator.mediaDevices.getUserMedia({
+      audio: true
+    });
+
+    roomsCard.style.display = "none";
+    voiceRoomCard.style.display = "block";
+
+    roomUserEmail.innerText = auth.currentUser.email;
+
+    micStatus.innerText = "🎤 الميكروفون يعمل";
+
+    alert("تم دخول الغرفة الصوتية 🎉");
+
+  } catch (e) {
+
+    alert("لم نتمكن من تشغيل الميكروفون: " + e.message);
+
+  }
+
+};
+
+
+// الخروج من الغرفة
+
+leaveRoomBtn.onclick = () => {
+
+  if (localStream) {
+
+    localStream.getTracks().forEach(track => track.stop());
+
+    localStream = null;
+
+  }
+
+  voiceRoomCard.style.display = "none";
+  roomsCard.style.display = "block";
+
+};
+
+
+// تشغيل وإيقاف الميكروفون
+
+micBtn.onclick = () => {
+
+  if (!localStream) return;
+
+  const audioTrack = localStream.getAudioTracks()[0];
+
+  audioTrack.enabled = !audioTrack.enabled;
+
+  if (audioTrack.enabled) {
+
+    micBtn.innerText = "🔇 كتم الميكروفون";
+    micStatus.innerText = "🎤 الميكروفون يعمل";
+
+  } else {
+
+    micBtn.innerText = "🎤 تشغيل الميكروفون";
+    micStatus.innerText = "🔇 الميكروفون مكتوم";
+
+  }
+
+};
+
+
+// تسجيل الخروج
+
+logoutBtn.onclick = async () => {
+
+  if (localStream) {
+
+    localStream.getTracks().forEach(track => track.stop());
+
+    localStream = null;
+
+  }
+
+  await signOut(auth);
+
+};
+
+
+// مراقبة حالة تسجيل الدخول
+
+onAuthStateChanged(auth, (user) => {
+
+  if (user) {
+
+    authCard.style.display = "none";
+    roomsCard.style.display = "block";
+
+    userEmailSpan.innerText = user.email;
+
+  } else {
+
+    authCard.style.display = "block";
+    roomsCard.style.display = "none";
+    voiceRoomCard.style.display = "none";
+
+  }
+
+});
