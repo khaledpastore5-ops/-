@@ -348,10 +348,10 @@ peerConnection.onicecandidate = async (event) => {
   };
 
   return peerConnection;
-}async function createOffer(roomId) {
-currentRoomId = roomId;
-  createPeer();
-}
+
+
+
+
 
 async function createOffer(roomId) {
   const offer = await peerConnection.createOffer();
@@ -484,7 +484,7 @@ createRoomBtn.onclick = async () => {
       createdAt: Date.now(),
       owner: auth.currentUser.email
     });
-await createOffer(code);
+
     roomCodeInput.value = code;
 localStream = await navigator.mediaDevices.getUserMedia({
   audio:true
