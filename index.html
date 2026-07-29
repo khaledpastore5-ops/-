@@ -210,9 +210,17 @@ import {
   setDoc,
   getDoc,
   updateDoc,
-  onSnapshot
+  onSnapshot,
+  collection,
+  addDoc
 }
-from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js"; 
+  
+  
+  
+  
+  
+
 import {
 getAuth,
 createUserWithEmailAndPassword,
@@ -280,7 +288,7 @@ const joinPrivateBtn = document.getElementById("joinPrivateBtn");
 const roomCodeInput = document.getElementById("roomCode");
 let localStream = null;
 let peerConnection = null;
-
+let currentRoomId = "";
 const rtcConfig = {
   iceServers: [
     {
@@ -294,7 +302,18 @@ const rtcConfig = {
 
 function createPeer() {
   peerConnection = new RTCPeerConnection(rtcConfig);
+peerConnection.onicecandidate = async (event) => {
 
+  if (event.candidate && currentRoomId) {
+
+    await addDoc(
+      collection(db, "rooms", currentRoomId, "callerCandidates"),
+      event.candidate.toJSON()
+    );
+
+  }
+
+};
   if (localStream) {
     localStream.getTracks().forEach(track => {
       peerConnection.addTrack(track, localStream);
@@ -316,7 +335,7 @@ function createPeer() {
 
   return peerConnection;
 }async function createOffer(roomId) {
-
+currentRoomId = roomId;
   createPeer();
 
   const offer = await peerConnection.createOffer();
@@ -354,14 +373,73 @@ async function joinOffer(roomId) {
   const answer = await peerConnection.createAnswer();
 
   await peerConnection.setLocalDescription(answer);
+peerConnection.onicecandidate = async (event) => {
 
+  if (event.candidate) {
+
+    await addDoc(
+      collection(db, "rooms", roomId, "answerCandidates"),
+      event.candidate.toJSON()
+    );
+
+  }
+
+};
   await updateDoc(roomRef, {
     answer: {
       type: answer.type,
       sdp: answer.sdp
     }
   });
+const callerCandidates = await getDocs(
+  collection(db, "rooms", roomId, "callerCandidates")
+);
 
+callerCandidates.forEach((candidate) => {
+
+  peerConnection.addIceCandidate(
+    new RTCIceCandidate(candidate.data())
+  );
+const roomRef = doc(db, "rooms", roomId);
+
+onSnapshot(roomRef, async (snapshot) => {
+
+  const data = snapshot.data();
+
+  if (
+    data.answer &&
+    !peerConnection.currentRemoteDescription
+  ) {
+
+    await peerConnection.setRemoteDescription(
+      new RTCSessionDescription(data.answer)
+    );
+
+  }
+const answerCandidatesRef = collection(
+  db,
+  "rooms",
+  roomId,
+  "answerCandidates"
+);
+
+onSnapshot(answerCandidatesRef, (snapshot) => {
+
+  snapshot.docChanges().forEach((change) => {
+
+    if (change.type === "added") {
+
+      peerConnection.addIceCandidate(
+        new RTCIceCandidate(change.doc.data())
+      );
+
+    }
+
+  });
+
+});
+});
+});
 }
 // إنشاء غرفة خاصة
 createRoomBtn.onclick = async () => {
