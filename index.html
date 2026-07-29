@@ -73,7 +73,7 @@ margin-top:10px;
 
 <div class="container">
 
-<div class="card" id="roomsCard" style="display:none;">
+<div class="card" id="authCard" style="display:none;">
 <h2>أهلاً بك</h2>
 
 <input id="email" type="email" placeholder="البريد الإلكتروني">
@@ -84,7 +84,7 @@ margin-top:10px;
 
 </div>
 
-<div class="card" id="authCard">
+<div class="card" id="roomsCard">
 <h2>الغرف الصوتية</h2>
 
 <div class="room">
@@ -133,8 +133,8 @@ document.getElementById("loginBtn").onclick = async () => {
   password
 );
 
+;document.getElementById("roomsCard").style.display = "block";
 document.getElementById("authCard").style.display = "none";
-document.getElementById("roomsCard").style.display = "block";
 document.getElementById("userEmailSpan").innerText =
   userCredential.user.email;
 
