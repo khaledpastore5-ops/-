@@ -454,7 +454,15 @@ createRoomBtn.onclick = async () => {
     });
 await createOffer(code);
     roomCodeInput.value = code;
+localStream = await navigator.mediaDevices.getUserMedia({
+  audio: true
+});
 
+roomsCard.style.display = "none";
+voiceRoomCard.style.display = "block";
+
+roomUserEmail.innerText = auth.currentUser.email;
+micStatus.innerText = "🎤 الميكروفون يعمل";
     alert("تم إنشاء الغرفة 🎉\nرمزها: " + code);
 
   } catch (e) {
@@ -465,7 +473,38 @@ await createOffer(code);
 
 };
 // دخول غرفة خاصة
-joinPrivateBtn.onclick = async () => {
+auth.currentUser.emailjoinPrivateBtn.onclick = async () => {
+
+  const code = roomCodeInput.value.trim().toUpperCase();
+
+  if (!code) {
+    alert("أدخل رمز الغرفة");
+    return;
+  }
+
+  try {
+
+    localStream = await navigator.mediaDevices.getUserMedia({
+      audio: true
+    });
+
+    await joinOffer(code);
+
+    roomsCard.style.display = "none";
+    voiceRoomCard.style.display = "block";
+
+    roomUserEmail.innerText = auth.currentUser.email;
+    micStatus.innerText = "🎤 الميكروفون يعمل";
+
+    alert("تم الانضمام إلى الغرفة 🎉");
+
+  } catch (e) {
+
+    alert("خطأ: " + e.message);
+
+  }
+
+};
 
   const code = roomCodeInput.value.trim().toUpperCase();
 
