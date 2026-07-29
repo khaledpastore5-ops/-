@@ -278,7 +278,7 @@ const joinPrivateBtn = document.getElementById("joinPrivateBtn");
 const roomCodeInput = document.getElementById("roomCode");
 let localStream = null;
 // إنشاء غرفة خاصة
-createRoomBtn.onclick = () => {
+
 createRoomBtn.onclick = async () => {
 
   const code = Math.random().toString(36).substring(2, 8).toUpperCase();
