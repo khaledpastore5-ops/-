@@ -204,7 +204,13 @@ placeholder="أدخل رمز الغرفة">
 
 import { initializeApp } 
 from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc
+}
+from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 import {
 getAuth,
 createUserWithEmailAndPassword,
@@ -237,6 +243,7 @@ measurementId: "G-M6J24WBQE3"
 const app = initializeApp(firebaseConfig);
 
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 
 const emailInput = document.getElementById("email");
@@ -272,15 +279,28 @@ const roomCodeInput = document.getElementById("roomCode");
 let localStream = null;
 // إنشاء غرفة خاصة
 createRoomBtn.onclick = () => {
+createRoomBtn.onclick = async () => {
 
   const code = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-  roomCodeInput.value = code;
+  try {
 
-  alert("تم إنشاء الغرفة 🎉\nرمز الغرفة: " + code);
+    await setDoc(doc(db, "rooms", code), {
+      createdAt: Date.now(),
+      owner: auth.currentUser.email
+    });
+
+    roomCodeInput.value = code;
+
+    alert("تم إنشاء الغرفة 🎉\nرمزها: " + code);
+
+  } catch (e) {
+
+    alert("خطأ: " + e.message);
+
+  }
 
 };
-
 // دخول غرفة خاصة
 joinPrivateBtn.onclick = () => {
 
