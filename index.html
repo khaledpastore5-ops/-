@@ -598,30 +598,28 @@ alert("خطأ: " + e.message);
 loginBtn.onclick = async () => {
 
 const email = emailInput.value.trim();
-
-const password = passwordInput.value;
+const password = passwordInput.value.trim();
 
 if (!email || !password) {
-
-alert("أدخل البريد الإلكتروني وكلمة المرور");
-
+alert("أدخل البريد وكلمة المرور");
 return;
-
 }
 
 try {
 
-await signInWithEmailAndPassword(
+const userCredential = await signInWithEmailAndPassword(
 auth,
 email,
 password
 );
 
-alert("تم تسجيل الدخول بنجاح 🎉");
+alert("تم الدخول: " + userCredential.user.email);
 
-} catch (e) {
+} catch(error) {
 
-alert("خطأ في تسجيل الدخول: " + e.message);
+console.log(error);
+
+alert(error.code + "\n" + error.message);
 
 }
 
