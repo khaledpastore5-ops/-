@@ -217,12 +217,9 @@ import {
   collection,
   addDoc,
   query,
-  orderBy
-}
-}
-from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
-  
-
+  orderBy,
+  deleteDoc
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
   
 
 
@@ -379,11 +376,103 @@ async function createOffer(roomId) {
 
 
 async function joinOffer(roomId) {
-async function joinOffer(roomId) {
 
-  // ... الكود ...
+  currentRoomId = roomId;
 
-} // نهاية joinOffer
+  const roomRef = doc(db, "rooms", roomId);
+
+  const room = await getDoc(roomRef);
+
+  if (!room.exists()) {
+    alert("الغرفة غير موجودة");
+    return;
+  }
+
+  createPeer();
+
+  const data = room.data();
+
+  await peerConnection.setRemoteDescription(
+    new RTCSessionDescription(data.offer)
+  );
+
+  const answer = await peerConnection.createAnswer();
+
+  await peerConnection.setLocalDescription(answer);
+
+  peerConnection.onicecandidate = async (event) => {
+
+    if (event.candidate) {
+
+      await addDoc(
+        collection(db, "rooms", roomId, "answerCandidates"),
+        event.candidate.toJSON()
+      );
+
+    }
+
+  };
+
+  await updateDoc(roomRef, {
+    answer: {
+      type: answer.type,
+      sdp: answer.sdp
+    }
+  });
+
+  const callerCandidates = await getDocs(
+    collection(db, "rooms", roomId, "callerCandidates")
+  );
+
+  callerCandidates.forEach((candidate) => {
+    peerConnection.addIceCandidate(
+      new RTCIceCandidate(candidate.data())
+    );
+  });
+
+  onSnapshot(roomRef, async (snapshot) => {
+
+    const data = snapshot.data();
+
+    if (
+      data.answer &&
+      !peerConnection.currentRemoteDescription
+    ) {
+
+      await peerConnection.setRemoteDescription(
+        new RTCSessionDescription(data.answer)
+      );
+
+    }
+
+  });
+
+  const answerCandidatesRef = collection(
+    db,
+    "rooms",
+    roomId,
+    "answerCandidates"
+  );
+
+  onSnapshot(answerCandidatesRef, (snapshot) => {
+
+    snapshot.docChanges().forEach((change) => {
+
+      if (change.type === "added") {
+
+        peerConnection.addIceCandidate(
+          new RTCIceCandidate(change.doc.data())
+        );
+
+      }
+
+    });
+
+  });
+
+}
+
+
 
 
 function watchUsers(roomId) {
@@ -414,8 +503,6 @@ function watchUsers(roomId) {
 }
 
 
-// إنشاء غرفة خاصة
-createRoomBtn.onclick = async () => {
   const roomRef = doc(db, "rooms", roomId);
 
   const room = await getDoc(roomRef);
@@ -582,7 +669,7 @@ await setDoc(
     email: auth.currentUser.email,
     joinedAt: Date.now()
   }
-);
+); watchUsers(code);
     roomsCard.style.display = "none";
     voiceRoomCard.style.display = "block";
 
