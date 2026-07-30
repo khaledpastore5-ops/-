@@ -354,6 +354,23 @@ peerConnection.onicecandidate = async (event) => {
 
 
 async function createOffer(roomId) {
+
+  currentRoomId = roomId;
+
+  createPeer();
+
+  const offer = await peerConnection.createOffer();
+
+  await peerConnection.setLocalDescription(offer);
+
+  await updateDoc(doc(db, "rooms", roomId), {
+    offer: {
+      type: offer.type,
+      sdp: offer.sdp
+    }
+  });
+
+}
   const offer = await peerConnection.createOffer();
 
   await peerConnection.setLocalDescription(offer);
