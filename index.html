@@ -371,18 +371,7 @@ async function createOffer(roomId) {
   });
 
 }
-  const offer = await peerConnection.createOffer();
 
-  await peerConnection.setLocalDescription(offer);
-
-  await updateDoc(doc(db, "rooms", roomId), {
-    offer: {
-      type: offer.type,
-      sdp: offer.sdp
-    }
-  });
-
-}
 
 async function joinOffer(roomId) {
 
