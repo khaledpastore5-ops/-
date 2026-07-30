@@ -182,7 +182,9 @@ placeholder="أدخل رمز الغرفة">
 المستخدم:
 <span id="roomUserEmail"></span>
 </p>
+<h3>👥 الموجودون في الغرفة</h3>
 
+<div id="usersList"></div>
 <div class="mic-status" id="micStatus">
 الميكروفون متوقف 🔇
 </div>
@@ -213,7 +215,10 @@ import {
   updateDoc,
   onSnapshot,
   collection,
-  addDoc
+  addDoc,
+  query,
+  orderBy
+}
 }
 from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
   
@@ -283,7 +288,7 @@ const logoutBtn = document.getElementById("logoutBtn");
 const authCard = document.getElementById("authCard");
 
 const roomsCard = document.getElementById("roomsCard");
-
+const usersList = document.getElementById("usersList");
 const voiceRoomCard = document.getElementById("voiceRoomCard");
 
 const userEmailSpan = document.getElementById("userEmailSpan");
@@ -374,7 +379,43 @@ async function createOffer(roomId) {
 
 
 async function joinOffer(roomId) {
+async function joinOffer(roomId) {
 
+  // ... الكود ...
+
+} // نهاية joinOffer
+
+
+function watchUsers(roomId) {
+
+  const q = query(
+    collection(db, "rooms", roomId, "users"),
+    orderBy("joinedAt")
+  );
+
+  onSnapshot(q, (snapshot) => {
+
+    usersList.innerHTML = "";
+
+    snapshot.forEach((doc) => {
+
+      const user = doc.data();
+
+      usersList.innerHTML += `
+        <div style="padding:8px;border-bottom:1px solid #eee">
+          👤 ${user.email}
+        </div>
+      `;
+
+    });
+
+  });
+
+}
+
+
+// إنشاء غرفة خاصة
+createRoomBtn.onclick = async () => {
   const roomRef = doc(db, "rooms", roomId);
 
   const room = await getDoc(roomRef);
@@ -490,14 +531,20 @@ createRoomBtn.onclick = async () => {
       createdAt: Date.now(),
       owner: auth.currentUser.email
     });
-
+await setDoc(
+  doc(db, "rooms", code, "users", auth.currentUser.uid),
+  {
+    email: auth.currentUser.email,
+    joinedAt: Date.now()
+  }
+);
     roomCodeInput.value = code;
 localStream = await navigator.mediaDevices.getUserMedia({
   audio:true
 });
 
 await createOffer(code);
-
+watchUsers(code);
 roomsCard.style.display = "none";
 voiceRoomCard.style.display = "block";
 
@@ -529,7 +576,13 @@ joinPrivateBtn.onclick = async () => {
     });
 
     await joinOffer(code);
-
+await setDoc(
+  doc(db, "rooms", code, "users", auth.currentUser.uid),
+  {
+    email: auth.currentUser.email,
+    joinedAt: Date.now()
+  }
+);
     roomsCard.style.display = "none";
     voiceRoomCard.style.display = "block";
 
